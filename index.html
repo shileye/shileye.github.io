@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -69,6 +70,7 @@
             <div class="col-md-6">
                 <button id="todayBtn" class="btn btn-primary">今天</button>
                 <button id="saveBtn" class="btn btn-success">保存记录</button>
+				<button id="showChartBtn" class="btn btn-info">📊 生成饼图哟~</button> <!-- 新增的弹窗按钮，放在保存按钮右侧 -->
             </div>
         </div>
         
@@ -76,7 +78,17 @@
         <div id="platformsContainer" class="row">
             <!-- JS动态生成带题目记录功能的平台卡片 -->
         </div>
-        
+        <!-- 饼图弹窗（默认隐藏） -->
+        <div id="chartModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center;">
+          <div style="background: white; width: 80%; max-width: 600px; border-radius: 8px; padding: 20px; position: relative;">
+            <!-- 关闭按钮 -->
+            <button id="closeModalBtn" style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 20px; cursor: pointer;">×</button>
+            <!-- 饼图标题 -->
+            <h3 style="text-align: center; margin-bottom: 20px;">各平台题目数量分布</h3>
+            <!-- 饼图画布 -->
+            <canvas id="platformChart" width="400" height="400"></canvas>
+          </div>
+        </div>
         <!-- 统计信息 -->
         <div class="row mt-4">
             <div class="col-md-4">
@@ -104,7 +116,21 @@
                 </div>
             </div>
         </div>
-        
+        <!-- 新增难度分布统计行 -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">难度分布统计</h5>
+                        <div class="display-6">
+                            <span id="easyTotal">简单题：0</span> | 
+                            <span id="mediumTotal">中等题：0</span> | 
+                            <span id="hardTotal">困难题：0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- 图表区域 -->
         <div class="row mt-4">
             <div class="col-md-12">
@@ -546,7 +572,32 @@
             document.getElementById('dailyTotal').textContent = dailyTotal;
             document.getElementById('monthlyTotal').textContent = monthlyTotal;
             document.getElementById('yearlyTotal').textContent = yearlyTotal;
+			// 新增：更新难度统计
+			    updateDifficultyStatistics();
         }
+		// 新增：更新难度分布统计
+		function updateDifficultyStatistics() {
+		    let easy = 0, medium = 0, hard = 0;
+		    
+		    // 遍历所有记录中的题目，按难度累加
+		    records.forEach(record => {
+		        platforms.forEach(platform => {
+		            const problems = record.problems[platform.id] || [];
+		            problems.forEach(problem => {
+		                switch(problem.difficulty) {
+		                    case '简单': easy++; break;
+		                    case '中等': medium++; break;
+		                    case '困难': hard++; break;
+		                }
+		            });
+		        });
+		    });
+		    
+		    // 更新页面显示
+		    document.getElementById('easyTotal').textContent = `简单题：${easy}`;
+		    document.getElementById('mediumTotal').textContent = `中等题：${medium}`;
+		    document.getElementById('hardTotal').textContent = `困难题：${hard}`;
+		}
 
         // 渲染图表
         function renderChart() {
@@ -590,6 +641,87 @@
             const datePicker = document.getElementById('datePicker');
             datePicker.valueAsDate = new Date();
         }
+		// 饼图弹窗相关变量
+		const chartModal = document.getElementById('chartModal');
+		const closeModalBtn = document.getElementById('closeModalBtn');
+		const showChartBtn = document.getElementById('showChartBtn');
+		let platformChart = null; // 饼图实例
+		
+		// 点击按钮显示弹窗
+		showChartBtn.addEventListener('click', function() {
+		  chartModal.style.display = 'flex'; // 显示弹窗
+		  renderPlatformPieChart(); // 生成饼图
+		});
+		
+		// 点击关闭按钮隐藏弹窗
+		closeModalBtn.addEventListener('click', function() {
+		  chartModal.style.display = 'none'; // 隐藏弹窗
+		  if (platformChart) {
+		    platformChart.destroy(); // 销毁饼图实例（避免重复绘制）
+		  }
+		});
+		
+		// 点击弹窗外部背景也可关闭
+		chartModal.addEventListener('click', function(e) {
+		  if (e.target === chartModal) { // 点击的是背景区域
+		    chartModal.style.display = 'none';
+		    if (platformChart) platformChart.destroy();
+		  }
+		});
+		
+		// 生成平台题目数量饼图（核心逻辑）
+		function renderPlatformPieChart() {
+		  // 1. 计算各平台总题目数
+		  const platformCounts = {};
+		  platforms.forEach(platform => {
+		    platformCounts[platform.id] = 0;
+		  });
+		
+		  records.forEach(record => {
+		    platforms.forEach(platform => {
+		      platformCounts[platform.id] += (record.counts[platform.id] || 0);
+		    });
+		  });
+		
+		  // 2. 准备饼图数据（过滤0题平台）
+		  const labels = [];
+		  const data = [];
+		  const colors = [
+		    '#40a9ff', '#ff7a45', '#73d13d', '#9254de', 
+		    '#ff4d4f', '#597ef7', '#ffc53d' // 平台对应颜色
+		  ];
+		
+		  platforms.forEach((platform, index) => {
+		    const count = platformCounts[platform.id];
+		    if (count > 0) {
+		      labels.push(platform.name);
+		      data.push(count);
+		    }
+		  });
+		
+		  // 3. 绘制饼图
+		  const ctx = document.getElementById('platformChart').getContext('2d');
+		  if (platformChart) platformChart.destroy(); // 销毁旧实例
+		
+		  platformChart = new Chart(ctx, {
+		    type: 'pie',
+		    data: { labels, datasets: [{ data, backgroundColor: colors.slice(0, labels.length), borderWidth: 1 }] },
+		    options: {
+		      responsive: true,
+		      plugins: {
+		        tooltip: {
+		          callbacks: {
+		            label: function(ctx) {
+		              const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+		              const percentage = Math.round((ctx.raw / total) * 100);
+		              return `${ctx.label}: ${ctx.raw}题 (${percentage}%)`;
+		            }
+		          }
+		        }
+		      }
+		    }
+		  });
+		}
     </script>
 </body>
 </html>
