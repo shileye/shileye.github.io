@@ -149,6 +149,10 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">历史记录</h5>
+						<!-- 分页按钮 -->
+						        <nav>
+						          <ul id="historyPagination" class="pagination pagination-sm"></ul>
+						        </nav>
                         <div class="table-responsive">
                             <table class="table table-striped">
                                 <thead>
@@ -473,38 +477,57 @@
         }
 
         // 渲染历史记录表格（新增题目详情列）
+        let currentPage = 1;
+        const recordsPerPage = 7; // 每页 7 天
+        
         function renderHistoryTable() {
-            const tableBody = document.getElementById('historyTable');
-            tableBody.innerHTML = '';
-            
-            records.slice().reverse().forEach(record => {
-                const row = document.createElement('tr');
-                let total = 0;
-                
-                row.innerHTML = `<td>${record.date}</td>`;
-                
-                // 各平台数量
-                platforms.forEach(platform => {
-                    const count = record.counts[platform.id] || 0;
-                    total += count;
-                    row.innerHTML += `<td>${count}</td>`;
-                });
-                
-                // 总计
-                row.innerHTML += `<td><strong>${total}</strong></td>`;
-                
-                // 题目详情按钮
-                row.innerHTML += `
-                    <td>
-                        <button class="btn btn-sm btn-info" onclick="showProblemDetail('${record.date}')">
-                            查看
-                        </button>
-                    </td>
-                `;
-                
-                tableBody.appendChild(row);
+          const tableBody = document.getElementById('historyTable');
+          tableBody.innerHTML = '';
+        
+          const startIndex = (currentPage - 1) * recordsPerPage;
+          const pageRecords = records.slice().reverse().slice(startIndex, startIndex + recordsPerPage);
+        
+          pageRecords.forEach(record => {
+            const row = document.createElement('tr');
+            let total = 0;
+            row.innerHTML = `<td>${record.date}</td>`;
+        
+            platforms.forEach(platform => {
+              const count = record.counts[platform.id] || 0;
+              total += count;
+              row.innerHTML += `<td>${count}</td>`;
             });
+        
+            row.innerHTML += `<td><strong>${total}</strong></td>`;
+            row.innerHTML += `
+              <td>
+                <button class="btn btn-sm btn-info" onclick="showProblemDetail('${record.date}')">查看</button>
+              </td>
+            `;
+            tableBody.appendChild(row);
+          });
+        
+          renderPagination();
         }
+        
+        function renderPagination() {
+          const pagination = document.getElementById('historyPagination');
+          pagination.innerHTML = '';
+        
+          const totalPages = Math.ceil(records.length / recordsPerPage);
+          for (let i = 1; i <= totalPages; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+            li.addEventListener('click', function (e) {
+              e.preventDefault();
+              currentPage = i;
+              renderHistoryTable();
+            });
+            pagination.appendChild(li);
+          }
+        }
+
 
         // 显示题目详情
         function showProblemDetail(date) {
@@ -543,10 +566,7 @@
             detailModal.show();
         }
 
-        // 初始化日期选择器
-        function initDatePicker() {
-            document.getElementById('datePicker').valueAsDate = new Date();
-        }
+        
 
         // 设置为今天
         function setToday() {
@@ -640,6 +660,7 @@
         function initDatePicker() {
             const datePicker = document.getElementById('datePicker');
             datePicker.valueAsDate = new Date();
+			
         }
 		// 饼图弹窗相关变量
 		const chartModal = document.getElementById('chartModal');
