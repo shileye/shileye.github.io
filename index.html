@@ -437,6 +437,10 @@
 
         // 保存记录（包含题目详情）
         function saveRecord() {
+			// 保存前显示提示
+			    const saveBtn = document.getElementById('saveBtn');
+			    saveBtn.disabled = true; // 禁用按钮防止重复点击
+			    saveBtn.textContent = '保存中...'; // 文字提示
             const date = document.getElementById('datePicker').value;
             if (!date) {
                 alert('请选择日期');
@@ -472,7 +476,11 @@
             updateStatistics();
             renderChart();
             
-            alert(`保存成功！共 ${total} 题`);
+            
+			// 保存完成后恢复按钮
+			    saveBtn.disabled = false;
+			    saveBtn.textContent = '保存记录';
+			    alert(`保存成功！共 ${total} 题`);
         }
 
         // 加载指定日期的记录（包含题目详情）
