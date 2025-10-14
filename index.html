@@ -1,714 +1,775 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>乐哥OJ AC记录系统 </title>
-    <!-- 引入外部库 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    
+    <title>乐哥OJ AC题目记录系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* --- CSS 美化区 --- */
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
-
-        :root {
-            --light-bg: #f0f2f5;
-            --light-card-bg: rgba(255, 255, 255, 0.65);
-            --light-text: #333;
-            --light-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-            --light-border: rgba(255, 255, 255, 0.2);
-            --dark-bg: #1a1a2e;
-            --dark-card-bg: rgba(26, 26, 46, 0.55);
-            --dark-text: #e0e0e0;
-            --dark-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
-            --dark-border: rgba(255, 255, 255, 0.1);
-            --primary-glow: 0 0 15px rgba(13, 110, 253, 0.5);
-            --border-radius: 12px;
-        }
-
-        [data-theme="light"] {
-            --bg-color: var(--light-bg);
-            --card-bg-color: var(--light-card-bg);
-            --text-color: var(--light-text);
-            --shadow-color: var(--light-shadow);
-            --border-color: var(--light-border);
-        }
-        [data-theme="dark"] {
-            --bg-color: var(--dark-bg);
-            --card-bg-color: var(--dark-card-bg);
-            --text-color: var(--dark-text);
-            --shadow-color: var(--dark-shadow);
-            --border-color: var(--dark-border);
-            --bs-body-color: var(--dark-text);
-            --bs-body-bg: var(--bg-color);
-            --bs-tertiary-bg: var(--dark-card-bg);
-        }
-
+		/* 在 <style> 标签中添加 */
+		.history-table {
+		    width: 100%;
+		    border-collapse: collapse;
+		    margin: 1rem 0;
+		}
+		.history-table th, .history-table td {
+		    border: 1px solid #ddd; /* 淡灰色边框 */
+		    padding: 0.5rem 0.8rem;
+		    text-align: center;
+		}
+		.history-table th {
+		    background-color: #f5f5f5; /* 表头灰色背景 */
+		    font-weight: bold;
+		}
+		.history-table tr:hover {
+		    background-color: #f9f9f9; /* 行 hover 高亮 */
+		}
         body {
-            font-family: 'Noto Sans SC', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s;
-            overflow-x: hidden;
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
         }
-
-        #particles-js {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            top: 0;
-            left: 0;
+        .platform-card {
+            margin-bottom: 15px;
+            border-left: 4px solid;
         }
-
+        .platform-card .card-body {
+            padding: 1rem;
+        }
+        .platform-input {
+            max-width: 100px;
+            display: inline-block;
+        }
+        #platformsContainer .col-md-3 {
+            padding: 0 8px;
+        }
         .card {
-            background: var(--card-bg-color);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: var(--border-radius);
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
+            margin-bottom: 20px;
         }
         .card:hover {
-            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
-        
-        .main-title {
-            animation: text-pop-up-top 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+        .display-6 {
+            font-size: 2rem;
+            font-weight: 300;
         }
-
-        .btn { border-radius: 20px; font-weight: 500; }
-        .btn-primary { box-shadow: var(--primary-glow); }
-        
-        .progress-bar {
-            background: linear-gradient(90deg, rgba(131,58,180,1) 0%, rgba(253,29,29,1) 50%, rgba(252,176,69,1) 100%);
+        .table th {
+            font-weight: 600;
         }
-
-        /* 日历热力图样式 */
-        .heatmap-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(14px, 1fr)); gap: 3px; }
-        .heatmap-day { width: 14px; height: 14px; background-color: #ebedf0; border-radius: 2px; }
-        [data-theme="dark"] .heatmap-day { background-color: rgba(255,255,255,0.1); }
-        .heatmap-day[data-level="1"] { background-color: #9be9a8; }
-        .heatmap-day[data-level="2"] { background-color: #40c463; }
-        .heatmap-day[data-level="3"] { background-color: #30a14e; }
-        .heatmap-day[data-level="4"] { background-color: #216e39; }
-        .tooltip-inner { font-size: 12px; }
-
-        .theme-switch {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
+        .nowcoder-card { border-left-color: #40a9ff; }
+        .hduoj-card { border-left-color: #ff7a45; }
+        .vj-card { border-left-color: #73d13d; }
+        .luogu-card { border-left-color: #9254de; }
+        .atcoder-card { border-left-color: #ff4d4f; }
+        .codeforces-card { border-left-color: #597ef7; }
+        .leetcode-card { border-left-color: #ffc53d; }
+        .problem-item {
+            padding: 5px 0;
+            border-bottom: 1px dashed #eee;
         }
-        
-        @keyframes text-pop-up-top {
-            0% { transform: translateY(0); opacity: 0; }
-            100% { transform: translateY(-10px); opacity: 1; }
+        .badge-difficulty {
+            margin-left: 5px;
         }
     </style>
 </head>
-<body data-theme="light">
-
-    <div id="particles-js"></div>
-
-    <div class="container py-4">
-        <!-- 标题和模式切换 -->
-        <div class="d-flex justify-content-center align-items-center mb-4">
-            <h1 class="main-title text-center"><i class="bi bi-trophy-fill"></i> 乐哥OJ AC记录系统 </h1>
+<body>
+    <div class="container">
+        <h1 class="text-center my-4">乐哥OJ AC题目记录系统</h1>
+        
+        <!-- 日期选择 -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <input type="date" id="datePicker" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <button id="todayBtn" class="btn btn-primary">今天</button>
+                <button id="saveBtn" class="btn btn-success">保存记录</button>
+				<button id="showChartBtn" class="btn btn-info">📊 生成饼图哟~</button> <!-- 新增的弹窗按钮，放在保存按钮右侧 -->
+            </div>
         </div>
-
-        <!-- 主控制区 -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <div class="row g-3 align-items-center">
-                    <div class="col-lg-4"><input type="date" id="datePicker" class="form-control"></div>
-                    <div class="col-lg-8 text-lg-end">
-                        <button id="todayBtn" class="btn btn-outline-primary btn-sm"><i class="bi bi-calendar-check"></i> 今天</button>
-                        <button id="saveBtn" class="btn btn-success btn-sm"><i class="bi bi-check-circle-fill"></i> 保存</button>
-                        <button id="showChartBtn" class="btn btn-info btn-sm"><i class="bi bi-pie-chart-fill"></i> 分布</button>
-                        <button class="btn btn-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#ioCollapse"><i class="bi bi-gear-fill"></i> 导入/导出</button>
+        
+        <!-- 平台输入区域（新增题目记录功能） -->
+        <div id="platformsContainer" class="row">
+            <!-- JS动态生成带题目记录功能的平台卡片 -->
+        </div>
+        <!-- 饼图弹窗（默认隐藏） -->
+        <div id="chartModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center;">
+          <div style="background: white; width: 80%; max-width: 600px; border-radius: 8px; padding: 20px; position: relative;">
+            <!-- 关闭按钮 -->
+            <button id="closeModalBtn" style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 20px; cursor: pointer;">×</button>
+            <!-- 饼图标题 -->
+            <h3 style="text-align: center; margin-bottom: 20px;">各平台题目数量分布</h3>
+            <!-- 饼图画布 -->
+            <canvas id="platformChart" width="400" height="400"></canvas>
+          </div>
+        </div>
+        <!-- 统计信息 -->
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">今日总计</h5>
+                        <p id="dailyTotal" class="display-6">0</p>
                     </div>
                 </div>
-                <div class="collapse mt-3" id="ioCollapse">
-                    <div class="d-flex gap-2">
-                        <button id="exportBtn" class="btn btn-outline-success btn-sm"><i class="bi bi-download"></i> 导出JSON</button>
-                        <input type="file" id="importFile" accept=".json" style="display: none;">
-                        <button id="importBtn" class="btn btn-outline-info btn-sm"><i class="bi bi-upload"></i> 导入JSON</button>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">本月总计</h5>
+                        <p id="monthlyTotal" class="display-6">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">本年总计</h5>
+                        <p id="yearlyTotal" class="display-6">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 新增难度分布统计行 -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">难度分布统计</h5>
+                        <div class="display-6">
+                            <span id="easyTotal">简单题：0</span> | 
+                            <span id="mediumTotal">中等题：0</span> | 
+                            <span id="hardTotal">困难题：0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 图表区域 -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">最近7天AC趋势</h5>
+                        <canvas id="acChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- 目标进度条 -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h5 class="card-title mb-0">本周目标</h5>
-                    <div>
-                        <span id="weeklyProgressText">0 / 10</span>
-                        <button id="editGoalBtn" class="btn btn-sm btn-link p-0 ms-2"><i class="bi bi-pencil-square"></i></button>
+        <!-- 历史记录表格（新增题目详情列） -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">历史记录</h5>
+						<!-- 分页按钮 -->
+						        <nav>
+						          <ul id="historyPagination" class="pagination pagination-sm"></ul>
+						        </nav>
+                        <div class="table-responsive">
+                            <table class="table table-striped history-table"> <!-- 合并class：table-striped（原有条纹）+ history-table（新增样式） -->
+                                <thead>
+                                    <tr>
+                                        <th>日期</th>
+                                        <th>牛客</th>
+                                        <th>HDUOJ</th>
+                                        <th>VJ</th>
+                                        <th>洛谷</th>
+                                        <th>AtCoder</th>
+                                        <th>Codeforces</th>
+                                        <th>力扣</th>
+                                        <th>总计</th>
+                                        <th>题目详情</th> <!-- 新增列 -->
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTable">
+                                    <!-- 动态生成历史记录 -->
+                                </tbody>
+								</table>
+                            
+                        </div>
                     </div>
-                </div>
-                <div class="progress" style="height: 10px;">
-                    <div id="weeklyProgressBar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 平台区 -->
-        <div id="platformsContainer" class="row"></div>
-
-        <!-- 日历热力图 -->
-        <div class="card mt-4">
-            <div class="card-body">
-                <h5 class="card-title">刷题日历</h5>
-                <div id="heatmapContainer" class="heatmap-container"></div>
-            </div>
-        </div>
-        
-        <!-- AC趋势图 -->
-        <div class="card mt-4">
-            <div class="card-body">
-                <h5 class="card-title">最近7天AC趋势</h5>
-                <canvas id="acChart"></canvas>
-            </div>
-        </div>
-        
-        <!-- 历史记录 -->
-        <div class="card mt-4">
-            <div class="card-body">
-                <h5 class="card-title">历史记录</h5>
-                <nav><ul id="historyPagination" class="pagination pagination-sm justify-content-end"></ul></nav>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead><tr><th>日期</th><th>牛客</th><th>HDU</th><th>VJ</th><th>洛谷</th><th>AtCoder</th><th>CF</th><th>力扣</th><th>总计</th><th>详情</th></tr></thead>
-                        <tbody id="historyTableBody"></tbody>
-                    </table>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- 主题切换按钮 -->
-    <div class="theme-switch">
-        <button id="themeToggleBtn" class="btn btn-dark"><i class="bi bi-moon-stars-fill"></i></button>
+
+    <!-- 题目添加弹窗（新增） -->
+    <div class="modal fade" id="problemModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">添加题目</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="currentPlatform"> <!-- 存储当前平台ID -->
+                    <div class="mb-3">
+                        <label class="form-label">题目编号</label>
+                        <input type="text" class="form-control" id="problemId" placeholder="如：P1234">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">题目名称</label>
+                        <input type="text" class="form-control" id="problemName" placeholder="输入题目名称">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">难度</label>
+                        <select class="form-select" id="problemDifficulty">
+                            <option value="简单">简单</option>
+                            <option value="中等">中等</option>
+                            <option value="困难">困难</option>
+                        </select>
+                    </div>
+                    <div id="problemList" class="mt-3">
+                        <h6>已添加题目：</h6>
+                        <div id="currentProblemList"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="addProblem()">添加</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Modals (弹窗) -->
-    <div class="modal fade" id="problemModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="modalTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="currentPlatform"><div class="mb-3"><input type="text" class="form-control" id="problemId" placeholder="题目编号 (如: 1A)"></div><div class="mb-3"><input type="text" class="form-control" id="problemName" placeholder="题目名称"></div><div class="mb-3"><select class="form-select" id="problemDifficulty"><option>简单</option><option>中等</option><option>困难</option></select></div><h6>已添加题目：</h6><div id="currentProblemList" class="list-group"></div></div><div class="modal-footer"><button type="button" id="addProblemBtn" class="btn btn-primary">添加</button></div></div></div></div>
-    <div class="modal fade" id="detailModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="detailTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="detailContent"></div></div></div></div>
-    <div class="modal fade" id="chartModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">各平台题目数量分布</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><canvas id="platformChart"></canvas></div></div></div></div>
+    <!-- 题目详情弹窗（新增） -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailTitle">题目详情</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="detailContent">
+                    <!-- 动态加载题目详情 -->
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <!-- 引入 JS 库 -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // --- JavaScript 逻辑区 ---
-        document.addEventListener('DOMContentLoaded', () => {
+        // 平台数据
+        const platforms = [
+            { id: 'nowcoder', name: '牛客', colorClass: 'nowcoder-card' },
+            { id: 'hduoj', name: 'HDUOJ', colorClass: 'hduoj-card' },
+            { id: 'vj', name: 'VJ', colorClass: 'vj-card' },
+            { id: 'luogu', name: '洛谷', colorClass: 'luogu-card' },
+            { id: 'atcoder', name: 'AtCoder', colorClass: 'atcoder-card' },
+            { id: 'codeforces', name: 'Codeforces', colorClass: 'codeforces-card' },
+            { id: 'leetcode', name: '力扣', colorClass: 'leetcode-card' }
+        ];
 
-            const OJ_Tracker = {
-                state: {
-                    records: [],
-                    weeklyGoal: 10,
-                    currentProblems: {},
-                    acChartInstance: null,
-                    platformChartInstance: null,
-                    currentPage: 1,
-                    recordsPerPage: 7,
-                    currentTheme: 'light',
-                },
+        // 初始化数据（新增problems字段存储题目详情）
+        let records = JSON.parse(localStorage.getItem('acRecords')) || [];
+        let currentProblems = {}; // 当前编辑的题目列表
+        let acChart = null;
+        const problemModal = new bootstrap.Modal(document.getElementById('problemModal'));
+        const detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
 
-                platforms: {
-                    'nowcoder': { name: '牛客', color: '#40a9ff' },
-                    'hduoj': { name: 'HDU', color: '#ff7a45' },
-                    'vj': { name: 'VJ', color: '#73d13d' },
-                    'luogu': { name: '洛谷', color: '#9254de' },
-                    'atcoder': { name: 'AtCoder', color: '#ff4d4f' },
-                    'codeforces': { name: 'CF', color: '#597ef7' },
-                    'leetcode': { name: '力扣', color: '#ffc53d' }
-                },
-
-                elements: {
-                    body: document.body,
-                    datePicker: document.getElementById('datePicker'),
-                    platformsContainer: document.getElementById('platformsContainer'),
-                    historyTableBody: document.getElementById('historyTableBody'),
-                    historyPagination: document.getElementById('historyPagination'),
-                    // Modals
-                    problemModalEl: document.getElementById('problemModal'),
-                    detailModalEl: document.getElementById('detailModal'),
-                    chartModalEl: document.getElementById('chartModal'),
-                    modalTitle: document.getElementById('modalTitle'),
-                    currentPlatformInput: document.getElementById('currentPlatform'),
-                    problemIdInput: document.getElementById('problemId'),
-                    problemNameInput: document.getElementById('problemName'),
-                    problemDifficultySelect: document.getElementById('problemDifficulty'),
-                    currentProblemList: document.getElementById('currentProblemList'),
-                    detailTitle: document.getElementById('detailTitle'),
-                    detailContent: document.getElementById('detailContent'),
-                    platformChartCanvas: document.getElementById('platformChart'),
-                    acChartCanvas: document.getElementById('acChart'),
-                    // Progress
-                    weeklyProgressBar: document.getElementById('weeklyProgressBar'),
-                    weeklyProgressText: document.getElementById('weeklyProgressText'),
-                    // Heatmap
-                    heatmapContainer: document.getElementById('heatmapContainer'),
-                },
-                
-                init() {
-                    this.loadData();
-                    this.initModals();
-                    this.initParticles();
-                    this.renderPlatformInputs();
-                    this.bindEvents();
-                    
-                    this.elements.datePicker.valueAsDate = new Date();
-                    this.loadRecordForDate();
-                    this.updateAllUI();
-                    this.setTheme(this.state.currentTheme);
-                },
-
-                initModals() {
-                    this.problemModal = new bootstrap.Modal(this.elements.problemModalEl);
-                    this.detailModal = new bootstrap.Modal(this.elements.detailModalEl);
-                    this.chartModal = new bootstrap.Modal(this.elements.chartModalEl);
-                },
-
-                bindEvents() {
-                    document.getElementById('todayBtn').addEventListener('click', () => {
-                        this.elements.datePicker.valueAsDate = new Date();
-                        this.loadRecordForDate();
-                    });
-                    document.getElementById('saveBtn').addEventListener('click', e => this.saveRecord(e.target));
-                    document.getElementById('showChartBtn').addEventListener('click', () => {
-                        this.chartModal.show();
-                        this.renderPlatformPieChart();
-                    });
-                    this.elements.datePicker.addEventListener('change', () => this.loadRecordForDate());
-                    document.getElementById('addProblemBtn').addEventListener('click', () => this.addProblem());
-                    document.getElementById('themeToggleBtn').addEventListener('click', () => this.toggleTheme());
-                    document.getElementById('editGoalBtn').addEventListener('click', () => this.editWeeklyGoal());
-                    document.getElementById('exportBtn').addEventListener('click', () => this.exportData());
-                    document.getElementById('importBtn').addEventListener('click', () => this.elements.importFile.click());
-                    document.getElementById('importFile').addEventListener('change', e => this.importData(e));
-
-                    this.elements.platformsContainer.addEventListener('click', e => {
-                        const target = e.target.closest('.btn-add-problem');
-                        if(target) this.openProblemModal(target.dataset.platformId);
-                    });
-                    this.elements.currentProblemList.addEventListener('click', e => {
-                        const target = e.target.closest('.btn-remove-problem');
-                        if (target) this.removeProblem(target.dataset.platformId, parseInt(target.dataset.index));
-                    });
-                    this.elements.historyTableBody.addEventListener('click', e => {
-                        const target = e.target.closest('.btn-show-detail');
-                        if (target) this.showProblemDetail(target.dataset.date);
-                    });
-                    this.elements.historyPagination.addEventListener('click', e => {
-                        e.preventDefault();
-                        const target = e.target.closest('.page-link');
-                        if (target?.dataset.page) {
-                            this.state.currentPage = parseInt(target.dataset.page);
-                            this.renderHistoryTable();
-                        }
-                    });
-                },
-
-                saveData() {
-                    const dataToSave = {
-                        records: this.state.records,
-                        weeklyGoal: this.state.weeklyGoal,
-                        theme: this.state.currentTheme
-                    };
-                    localStorage.setItem('acRecords_v3', JSON.stringify(dataToSave));
-                },
-
-                loadData() {
-                    const data = JSON.parse(localStorage.getItem('acRecords_v3'));
-                    if (data) {
-                        this.state.records = data.records || [];
-                        this.state.weeklyGoal = data.weeklyGoal || 10;
-                        this.state.currentTheme = data.theme || 'light';
-                    }
-                },
-
-                renderPlatformInputs() {
-                    this.elements.platformsContainer.innerHTML = Object.entries(this.platforms).map(([id, p]) => `
-                        <div class="col-6 col-md-4 col-lg-3 mb-3">
-                            <div class="card platform-card" style="border-top-color: ${p.color};">
-                                <div class="card-body">
-                                    <h6 class="card-title">${p.name}</h6>
-                                    <div class="input-group">
-                                        <input type="number" min="0" id="${id}Input" class="form-control" value="0">
-                                        <button class="btn btn-outline-secondary btn-add-problem" type="button" data-platform-id="${id}"><i class="bi bi-plus-lg"></i></button>
-                                    </div>
-                                    <div id="${id}ProblemList" class="mt-2 small text-muted"></div>
-                                </div>
-                            </div>
-                        </div>`).join('');
-                },
-                
-                openProblemModal(platformId) {
-                    this.elements.currentPlatformInput.value = platformId;
-                    this.elements.problemIdInput.value = '';
-                    this.elements.problemNameInput.value = '';
-                    this.elements.problemDifficultySelect.value = '中等';
-                    this.renderCurrentProblemList(platformId);
-                    this.elements.modalTitle.textContent = `添加 ${this.platforms[platformId].name} 题目`;
-                    this.problemModal.show();
-                },
-
-                renderCurrentProblemList(platformId) {
-                    const problems = this.state.currentProblems[platformId] || [];
-                    this.elements.currentProblemList.innerHTML = (problems.length === 0)
-                        ? '<div class="list-group-item text-center text-muted">暂无题目</div>'
-                        : problems.map((p, i) => `
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                <div><small class="fw-bold">${p.id}:</small> ${p.name} <span class="badge bg-secondary ms-2">${p.difficulty}</span></div>
-                                <button class="btn btn-sm btn-outline-danger btn-remove-problem" data-platform-id="${platformId}" data-index="${i}"><i class="bi bi-trash"></i></button>
-                            </div>`).join('');
-                },
-
-                addProblem() {
-                    const platformId = this.elements.currentPlatformInput.value;
-                    const id = this.elements.problemIdInput.value.trim();
-                    const name = this.elements.problemNameInput.value.trim();
-                    const difficulty = this.elements.problemDifficultySelect.value;
-                    if (!id || !name) { alert('请输入题目编号和名称'); return; }
-                    
-                    if (!this.state.currentProblems[platformId]) this.state.currentProblems[platformId] = [];
-                    this.state.currentProblems[platformId].push({ id, name, difficulty });
-
-                    this.renderCurrentProblemList(platformId);
-                    this.updatePlatformProblemList(platformId);
-                    document.getElementById(`${platformId}Input`).value = this.state.currentProblems[platformId].length;
-                    
-                    this.elements.problemIdInput.value = '';
-                    this.elements.problemNameInput.value = '';
-                    this.elements.problemIdInput.focus();
-                },
-
-                removeProblem(platformId, index) {
-                    this.state.currentProblems[platformId]?.splice(index, 1);
-                    this.renderCurrentProblemList(platformId);
-                    this.updatePlatformProblemList(platformId);
-                    document.getElementById(`${platformId}Input`).value = this.state.currentProblems[platformId]?.length || 0;
-                },
-
-                updatePlatformProblemList(platformId) {
-                    const container = document.getElementById(`${platformId}ProblemList`);
-                    const problems = this.state.currentProblems[platformId] || [];
-                    container.textContent = problems.length > 0 ? `已记录 ${problems.length} 题` : '';
-                },
-                
-                saveRecord(saveBtn) {
-                    saveBtn.disabled = true;
-                    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> 保存中...';
-
-                    const date = this.elements.datePicker.value;
-                    if (!date) { alert('请选择日期'); return; }
-                    
-                    const record = { date, counts: {}, problems: { ...this.state.currentProblems } };
-                    let total = 0;
-                    Object.keys(this.platforms).forEach(id => {
-                        const count = parseInt(document.getElementById(`${id}Input`).value) || 0;
-                        record.counts[id] = count;
-                        total += count;
-                    });
-
-                    const index = this.state.records.findIndex(r => r.date === date);
-                    if (index >= 0) this.state.records[index] = record;
-                    else this.state.records.push(record);
-                    
-                    this.state.records.sort((a, b) => new Date(a.date) - new Date(b.date));
-                    this.saveData();
-                    this.updateAllUI();
-
-                    setTimeout(() => {
-                        saveBtn.disabled = false;
-                        saveBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> 保存';
-                        alert(`保存成功！共 ${total} 题`);
-                    }, 500);
-                },
-
-                loadRecordForDate() {
-                    const date = this.elements.datePicker.value;
-                    const record = this.state.records.find(r => r.date === date);
-                    this.state.currentProblems = record ? JSON.parse(JSON.stringify(record.problems || {})) : {};
-
-                    Object.keys(this.platforms).forEach(id => {
-                        document.getElementById(`${id}Input`).value = record?.counts?.[id] || 0;
-                        this.updatePlatformProblemList(id);
-                    });
-                },
-                
-                renderHistoryTable() {
-                    const startIndex = (this.state.currentPage - 1) * this.state.recordsPerPage;
-                    const pageRecords = this.state.records.slice().reverse().slice(startIndex, startIndex + this.state.recordsPerPage);
-                    
-                    this.elements.historyTableBody.innerHTML = pageRecords.map(record => {
-                        let total = 0;
-                        const platformCells = Object.keys(this.platforms).map(id => {
-                            const count = record.counts?.[id] || 0;
-                            total += count;
-                            return `<td>${count}</td>`;
-                        }).join('');
-                        return `<tr><td>${record.date}</td>${platformCells}<td><strong>${total}</strong></td><td><button class="btn btn-sm btn-outline-info btn-show-detail" data-date="${record.date}">查看</button></td></tr>`;
-                    }).join('');
-                    this.renderPagination();
-                },
-
-                renderPagination() {
-                    const totalPages = Math.ceil(this.state.records.length / this.state.recordsPerPage);
-                    if(totalPages <= 1) { this.elements.historyPagination.innerHTML = ''; return; }
-                    this.elements.historyPagination.innerHTML = Array.from({length: totalPages}, (_, i) => 
-                        `<li class="page-item ${i + 1 === this.state.currentPage ? 'active' : ''}"><a class="page-link" href="#" data-page="${i + 1}">${i + 1}</a></li>`
-                    ).join('');
-                },
-
-                showProblemDetail(date) {
-                    const record = this.state.records.find(r => r.date === date);
-                    if (!record) return;
-                    
-                    let content = '';
-                    let hasProblems = false;
-                    Object.entries(this.platforms).forEach(([id, p]) => {
-                        const problems = record.problems?.[id] || [];
-                        if (problems.length === 0) return;
-                        hasProblems = true;
-                        content += `<h6>${p.name} (${problems.length}题)</h6><ul class="list-group list-group-flush mb-3">`;
-                        content += problems.map(prob => `<li class="list-group-item d-flex justify-content-between align-items-center">${prob.id}: ${prob.name}<span class="badge bg-primary rounded-pill">${prob.difficulty}</span></li>`).join('');
-                        content += '</ul>';
-                    });
-                    if (!hasProblems) content = '<p class="text-center text-muted">当天没有记录详细的题目信息。</p>';
-                    
-                    this.elements.detailTitle.textContent = `${date} 题目详情`;
-                    this.elements.detailContent.innerHTML = content;
-                    this.detailModal.show();
-                },
-                
-                updateAllUI() {
-                    this.updateStatistics();
-                    this.renderHistoryTable();
-                    this.renderAcChart();
-                    this.updateWeeklyProgress();
-                    this.renderHeatmap();
-                },
-
-                updateStatistics() {
-                    const now = new Date();
-                    const todayStr = now.toISOString().split('T')[0];
-                    let grand = 0;
-                    this.state.records.forEach(r => grand += Object.values(r.counts || {}).reduce((s, c) => s + c, 0));
-                    document.getElementById('grandTotal').textContent = grand;
-                },
-                
-                renderAcChart() {
-                    if (this.state.acChartInstance) this.state.acChartInstance.destroy();
-                    const recentRecords = this.state.records.slice(-7);
-                    
-                    const chartOptions = {
-                        responsive: true,
-                        plugins: { legend: { labels: { color: this.state.currentTheme === 'dark' ? 'white' : 'black' } } },
-                        scales: { 
-                            x: { stacked: true, ticks: { color: this.state.currentTheme === 'dark' ? 'white' : 'black' } }, 
-                            y: { stacked: true, beginAtZero: true, ticks: { color: this.state.currentTheme === 'dark' ? 'white' : 'black' } }
-                        }
-                    };
-
-                    this.state.acChartInstance = new Chart(this.elements.acChartCanvas, {
-                        type: 'bar',
-                        data: {
-                            labels: recentRecords.map(r => r.date.substring(5)),
-                            datasets: Object.entries(this.platforms).map(([id, p]) => ({
-                                label: p.name,
-                                data: recentRecords.map(r => r.counts?.[id] || 0),
-                                backgroundColor: p.color,
-                            }))
-                        },
-                        options: chartOptions
-                    });
-                },
-                
-                renderPlatformPieChart() {
-                    if (this.state.platformChartInstance) this.state.platformChartInstance.destroy();
-                    const platformCounts = Object.keys(this.platforms).reduce((acc, id) => ({...acc, [this.platforms[id].name]: 0}), {});
-
-                    this.state.records.forEach(r => {
-                        Object.keys(this.platforms).forEach(id => {
-                            platformCounts[this.platforms[id].name] += r.counts?.[id] || 0;
-                        });
-                    });
-                    const chartData = Object.entries(platformCounts).filter(([, count]) => count > 0);
-                    
-                    this.state.platformChartInstance = new Chart(this.elements.platformChartCanvas, {
-                        type: 'pie',
-                        data: {
-                            labels: chartData.map(([name]) => name),
-                            datasets: [{
-                                data: chartData.map(([, count]) => count),
-                                backgroundColor: Object.values(this.platforms).map(p => p.color),
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: { position: 'top', labels: { color: this.state.currentTheme === 'dark' ? 'white' : 'black' } },
-                                tooltip: {
-                                    callbacks: {
-                                        label: ctx => {
-                                            const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                                            const percentage = total > 0 ? Math.round((ctx.raw / total) * 100) : 0;
-                                            return `${ctx.label}: ${ctx.raw}题 (${percentage}%)`;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    });
-                },
-                
-                toggleTheme() {
-                    this.state.currentTheme = this.state.currentTheme === 'light' ? 'dark' : 'light';
-                    this.setTheme(this.state.currentTheme);
-                    this.saveData();
-                },
-
-                setTheme(theme) {
-                    this.elements.body.dataset.theme = theme;
-                    const btn = document.getElementById('themeToggleBtn');
-                    btn.innerHTML = theme === 'light' 
-                        ? '<i class="bi bi-moon-stars-fill"></i>' 
-                        : '<i class="bi bi-brightness-high-fill"></i>';
-                    btn.className = theme === 'light' ? 'btn btn-dark' : 'btn btn-light';
-                    this.updateAllUI(); // Re-render charts for new theme
-                },
-
-                editWeeklyGoal() {
-                    const newGoal = prompt('请输入新的每周刷题目标:', this.state.weeklyGoal);
-                    if (newGoal && !isNaN(newGoal) && newGoal > 0) {
-                        this.state.weeklyGoal = parseInt(newGoal);
-                        this.saveData();
-                        this.updateWeeklyProgress();
-                    }
-                },
-                
-                updateWeeklyProgress() {
-                    const now = new Date();
-                    const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1; // Mon = 0
-                    const startOfWeek = new Date(now.setDate(now.getDate() - dayOfWeek));
-                    
-                    let weeklyCount = 0;
-                    for (let i = 0; i < 7; i++) {
-                        const date = new Date(startOfWeek);
-                        date.setDate(startOfWeek.getDate() + i);
-                        const dateStr = date.toISOString().split('T')[0];
-                        const record = this.state.records.find(r => r.date === dateStr);
-                        if (record) {
-                            weeklyCount += Object.values(record.counts || {}).reduce((s, c) => s + c, 0);
-                        }
-                    }
-                    
-                    const percentage = Math.min(100, (weeklyCount / this.state.weeklyGoal) * 100);
-                    this.elements.weeklyProgressBar.style.width = `${percentage}%`;
-                    this.elements.weeklyProgressBar.setAttribute('aria-valuenow', percentage);
-                    this.elements.weeklyProgressText.textContent = `${weeklyCount} / ${this.state.weeklyGoal}`;
-                },
-
-                renderHeatmap() {
-                    this.elements.heatmapContainer.innerHTML = '';
-                    const today = new Date();
-                    const oneYearAgo = new Date();
-                    oneYearAgo.setFullYear(today.getFullYear() - 1);
-
-                    const recordMap = new Map(this.state.records.map(r => [r.date, Object.values(r.counts || {}).reduce((s, c) => s + c, 0)]));
-                    
-                    for (let d = oneYearAgo; d <= today; d.setDate(d.getDate() + 1)) {
-                        const dateStr = d.toISOString().split('T')[0];
-                        const count = recordMap.get(dateStr) || 0;
-                        let level = 0;
-                        if (count > 0) level = 1;
-                        if (count >= 3) level = 2;
-                        if (count >= 7) level = 3;
-                        if (count >= 15) level = 4;
-                        
-                        const dayDiv = document.createElement('div');
-                        dayDiv.className = 'heatmap-day';
-                        dayDiv.dataset.level = level;
-                        dayDiv.title = `${dateStr}: ${count} 题`;
-                        this.elements.heatmapContainer.appendChild(dayDiv);
-                    }
-                    // Use bootstrap tooltips for heatmap
-                    Array.from(this.elements.heatmapContainer.children).forEach(el => new bootstrap.Tooltip(el));
-                },
-
-                exportData() {
-                    const dataStr = JSON.stringify({
-                        records: this.state.records,
-                        weeklyGoal: this.state.weeklyGoal,
-                        theme: this.state.currentTheme
-                    }, null, 2);
-                    const blob = new Blob([dataStr], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `lege_oj_records_${new Date().toISOString().split('T')[0]}.json`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                },
-                
-                importData(event) {
-                    const file = event.target.files[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = e => {
-                        try {
-                            const data = JSON.parse(e.target.result);
-                            if (data.records && Array.isArray(data.records)) {
-                                this.state.records = data.records;
-                                this.state.weeklyGoal = data.weeklyGoal || 10;
-                                this.state.currentTheme = data.theme || 'light';
-                                this.saveData();
-                                this.setTheme(this.state.currentTheme);
-                                this.updateAllUI();
-                                this.loadRecordForDate();
-                                alert('数据导入成功!');
-                            } else {
-                                alert('导入失败：文件格式不正确。');
-                            }
-                        } catch (error) {
-                            alert(`导入失败：${error.message}`);
-                        }
-                    };
-                    reader.readAsText(file);
-                    event.target.value = ''; // Reset file input
-                },
-
-                initParticles() {
-                    particlesJS('particles-js', {
-                        "particles": {"number":{"value":80,"density":{"enable":true,"value_area":800}},"color":{"value":"#888888"},"shape":{"type":"circle"},"opacity":{"value":0.5,"random":false},"size":{"value":3,"random":true},"line_linked":{"enable":true,"distance":150,"color":"#888888","opacity":0.4,"width":1},"move":{"enable":true,"speed":2,"direction":"none","random":false,"straight":false,"out_mode":"out","bounce":false}},
-                        "interactivity": {"detect_on":"canvas","events":{"onhover":{"enable":true,"mode":"repulse"},"onclick":{"enable":true,"mode":"push"},"resize":true}},
-                        "retina_detect": true
-                    });
-                    // Adjust particle color for dark mode
-                    if (this.state.currentTheme === 'dark') {
-                        if (window.pJSDom && window.pJSDom[0]) {
-                            const pJS = window.pJSDom[0].pJS;
-                            pJS.particles.color.value = '#ffffff';
-                            pJS.particles.line_linked.color = '#ffffff';
-                            pJS.fn.particlesRefresh();
-                        }
-                    }
-                }
-            };
+        // 页面加载完成后执行
+        window.onload = function() {
+            renderPlatformInputs(); // 生成带题目功能的平台卡片
+            initDatePicker();
+            renderHistoryTable();
+            updateStatistics();
+            renderChart();
             
-            // 启动应用
-            OJ_Tracker.init();
-        });
+            // 绑定事件
+            document.getElementById('todayBtn').onclick = setToday;
+            document.getElementById('saveBtn').onclick = saveRecord;
+            document.getElementById('datePicker').onchange = loadRecordForDate;
+        };
+
+        // 渲染平台输入区域（新增题目按钮和列表）
+        function renderPlatformInputs() {
+            const container = document.getElementById('platformsContainer');
+            container.innerHTML = '';
+            
+            platforms.forEach(platform => {
+                const col = document.createElement('div');
+                col.className = 'col-md-3 mb-3';
+                
+                const card = document.createElement('div');
+                card.className = `card platform-card ${platform.colorClass}`;
+                
+                // 平台卡片HTML（新增"添加题目"按钮和题目列表）
+                card.innerHTML = `
+                    <div class="card-body">
+                        <h5 class="card-title">${platform.name}</h5>
+                        <input type="number" min="0" id="${platform.id}Input" 
+                               class="form-control platform-input mb-2" value="0" placeholder="AC数量">
+                        <button class="btn btn-sm btn-outline-primary" onclick="openProblemModal('${platform.id}')">
+                            添加题目
+                        </button>
+                        <div id="${platform.id}ProblemList" class="mt-2 problem-list">
+                            <!-- 动态显示已添加题目 -->
+                        </div>
+                    </div>
+                `;
+                
+                col.appendChild(card);
+                container.appendChild(col);
+            });
+        }
+
+        // 打开题目添加弹窗
+        function openProblemModal(platformId) {
+            document.getElementById('currentPlatform').value = platformId;
+            document.getElementById('problemId').value = '';
+            document.getElementById('problemName').value = '';
+            document.getElementById('problemDifficulty').value = '简单';
+            
+            // 显示当前平台已添加的题目
+            renderCurrentProblemList(platformId);
+            
+            // 设置弹窗标题
+            const platform = platforms.find(p => p.id === platformId);
+            document.getElementById('modalTitle').textContent = `添加${platform.name}题目`;
+            
+            problemModal.show();
+        }
+
+        // 渲染当前平台已添加的题目列表
+        function renderCurrentProblemList(platformId) {
+            const container = document.getElementById('currentProblemList');
+            container.innerHTML = '';
+            
+            const problems = currentProblems[platformId] || [];
+            if (problems.length === 0) {
+                container.innerHTML = '<small class="text-muted">暂无题目</small>';
+                return;
+            }
+            
+            problems.forEach((problem, index) => {
+                const item = document.createElement('div');
+                item.className = 'problem-item d-flex justify-content-between align-items-center';
+                item.innerHTML = `
+                    <span>
+                        ${problem.id}：${problem.name}
+                        <span class="badge bg-secondary badge-difficulty">${problem.difficulty}</span>
+                    </span>
+                    <button class="btn btn-sm btn-danger" onclick="removeProblem('${platformId}', ${index})">
+                        ×
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // 添加题目
+        function addProblem() {
+            const platformId = document.getElementById('currentPlatform').value;
+            const problemId = document.getElementById('problemId').value.trim();
+            const problemName = document.getElementById('problemName').value.trim();
+            const difficulty = document.getElementById('problemDifficulty').value;
+            
+            if (!problemId || !problemName) {
+                alert('请输入题目编号和名称');
+                return;
+            }
+            
+            // 初始化当前平台题目列表
+            if (!currentProblems[platformId]) {
+                currentProblems[platformId] = [];
+            }
+            
+            // 添加新题目
+            currentProblems[platformId].push({ id: problemId, name: problemName, difficulty });
+            
+            // 更新弹窗和平台卡片中的题目列表
+            renderCurrentProblemList(platformId);
+            updatePlatformProblemList(platformId);
+            
+            // 更新AC数量（题目数即为AC数量）
+            document.getElementById(`${platformId}Input`).value = currentProblems[platformId].length;
+        }
+
+        // 删除题目
+        function removeProblem(platformId, index) {
+            if (!currentProblems[platformId]) return;
+            
+            // 删除题目
+            currentProblems[platformId].splice(index, 1);
+            
+            // 更新弹窗和平台卡片中的题目列表
+            renderCurrentProblemList(platformId);
+            updatePlatformProblemList(platformId);
+            
+            // 更新AC数量
+            document.getElementById(`${platformId}Input`).value = currentProblems[platformId].length;
+        }
+
+        // 更新平台卡片中的题目列表显示
+        function updatePlatformProblemList(platformId) {
+            const container = document.getElementById(`${platformId}ProblemList`);
+            container.innerHTML = '';
+            
+            const problems = currentProblems[platformId] || [];
+            if (problems.length === 0) {
+                container.innerHTML = '<small class="text-muted">未添加题目</small>';
+                return;
+            }
+            
+            // 只显示前3个题目，多余的显示数量
+            const displayProblems = problems.slice(0, 3);
+            displayProblems.forEach(problem => {
+                const item = document.createElement('div');
+                item.className = 'text-sm';
+                item.innerHTML = `${problem.id} <span class="badge bg-secondary badge-difficulty">${problem.difficulty}</span>`;
+                container.appendChild(item);
+            });
+            
+            if (problems.length > 3) {
+                const more = document.createElement('div');
+                more.className = 'text-sm text-muted';
+                more.textContent = `...还有${problems.length - 3}题`;
+                container.appendChild(more);
+            }
+        }
+
+        // 保存记录（包含题目详情）
+        function saveRecord() {
+			// 保存前显示提示
+			    const saveBtn = document.getElementById('saveBtn');
+			    saveBtn.disabled = true; // 禁用按钮防止重复点击
+			    saveBtn.textContent = '保存中...'; // 文字提示
+            const date = document.getElementById('datePicker').value;
+            if (!date) {
+                alert('请选择日期');
+                return;
+            }
+            
+            const record = { date, counts: {}, problems: {} };
+            let total = 0;
+            
+            // 收集各平台数据
+            platforms.forEach(platform => {
+                const input = document.getElementById(`${platform.id}Input`);
+                const count = parseInt(input.value) || 0;
+                record.counts[platform.id] = count;
+                record.problems[platform.id] = currentProblems[platform.id] || []; // 保存题目详情
+                total += count;
+            });
+            
+            // 更新或添加记录
+            const existingIndex = records.findIndex(r => r.date === date);
+            if (existingIndex >= 0) {
+                records[existingIndex] = record;
+            } else {
+                records.push(record);
+            }
+            
+            // 按日期排序并保存
+            records.sort((a, b) => new Date(a.date) - new Date(b.date));
+            localStorage.setItem('acRecords', JSON.stringify(records));
+            
+            // 更新UI
+            renderHistoryTable();
+            updateStatistics();
+            renderChart();
+            
+            
+			// 保存完成后恢复按钮
+			    saveBtn.disabled = false;
+			    saveBtn.textContent = '保存记录';
+			    alert(`保存成功！共 ${total} 题`);
+        }
+
+        // 加载指定日期的记录（包含题目详情）
+        function loadRecordForDate() {
+            const date = document.getElementById('datePicker').value;
+            const record = records.find(r => r.date === date);
+            
+            // 重置当前题目列表
+            currentProblems = {};
+            
+            platforms.forEach(platform => {
+                // 加载数量
+                const input = document.getElementById(`${platform.id}Input`);
+                input.value = record ? record.counts[platform.id] || 0 : 0;
+                
+                // 加载题目详情
+                currentProblems[platform.id] = record ? record.problems[platform.id] || [] : [];
+                
+                // 更新平台卡片中的题目列表显示
+                updatePlatformProblemList(platform.id);
+            });
+        }
+
+        // 渲染历史记录表格（新增题目详情列）
+        let currentPage = 1;
+        const recordsPerPage = 7; // 每页 7 天
+        
+        function renderHistoryTable() {
+          const tableBody = document.getElementById('historyTable');
+          tableBody.innerHTML = '';
+        
+          const startIndex = (currentPage - 1) * recordsPerPage;
+          const pageRecords = records.slice().reverse().slice(startIndex, startIndex + recordsPerPage);
+        
+          pageRecords.forEach(record => {
+            const row = document.createElement('tr');
+            let total = 0;
+            row.innerHTML = `<td>${record.date}</td>`;
+        
+            platforms.forEach(platform => {
+              const count = record.counts[platform.id] || 0;
+              total += count;
+              row.innerHTML += `<td>${count}</td>`;
+            });
+        
+            row.innerHTML += `<td><strong>${total}</strong></td>`;
+            row.innerHTML += `
+              <td>
+                <button class="btn btn-sm btn-info" onclick="showProblemDetail('${record.date}')">查看</button>
+              </td>
+            `;
+            tableBody.appendChild(row);
+          });
+        
+          renderPagination();
+        }
+        
+        function renderPagination() {
+          const pagination = document.getElementById('historyPagination');
+          pagination.innerHTML = '';
+        
+          const totalPages = Math.ceil(records.length / recordsPerPage);
+          for (let i = 1; i <= totalPages; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+            li.addEventListener('click', function (e) {
+              e.preventDefault();
+              currentPage = i;
+              renderHistoryTable();
+            });
+            pagination.appendChild(li);
+          }
+        }
+
+
+        // 显示题目详情
+        function showProblemDetail(date) {
+            const record = records.find(r => r.date === date);
+            if (!record) return;
+            
+            const container = document.getElementById('detailContent');
+            container.innerHTML = `<h5>${date} 题目详情</h5><hr>`;
+            
+            platforms.forEach(platform => {
+                const problems = record.problems[platform.id] || [];
+                if (problems.length === 0) return;
+                
+                const platformName = platforms.find(p => p.id === platform.id).name;
+                const section = document.createElement('div');
+                section.className = 'mb-4';
+                section.innerHTML = `<h6>${platformName}（共${problems.length}题）</h6>`;
+                
+                const list = document.createElement('ul');
+                problems.forEach(problem => {
+                    list.innerHTML += `
+                        <li class="d-flex justify-content-between">
+                            <div>
+                                <strong>${problem.id}</strong>：${problem.name}
+                            </div>
+                            <span class="badge bg-secondary">${problem.difficulty}</span>
+                        </li>
+                    `;
+                });
+                
+                section.appendChild(list);
+                container.appendChild(section);
+            });
+            
+            document.getElementById('detailTitle').textContent = `${date} 题目详情`;
+            detailModal.show();
+        }
+
+        
+
+        // 设置为今天
+        function setToday() {
+            document.getElementById('datePicker').valueAsDate = new Date();
+            loadRecordForDate();
+        }
+
+        // 更新统计信息
+        function updateStatistics() {
+            const today = new Date().toISOString().split('T')[0];
+            const currentMonth = new Date().toISOString().substring(0, 7);
+            const currentYear = new Date().getFullYear().toString();
+            
+            let dailyTotal = 0, monthlyTotal = 0, yearlyTotal = 0;
+            
+            records.forEach(record => {
+                const recordTotal = platforms.reduce((sum, p) => sum + (record.counts[p.id] || 0), 0);
+                if (record.date === today) dailyTotal = recordTotal;
+                if (record.date.startsWith(currentMonth)) monthlyTotal += recordTotal;
+                if (record.date.startsWith(currentYear)) yearlyTotal += recordTotal;
+            });
+            
+            document.getElementById('dailyTotal').textContent = dailyTotal;
+            document.getElementById('monthlyTotal').textContent = monthlyTotal;
+            document.getElementById('yearlyTotal').textContent = yearlyTotal;
+			// 新增：更新难度统计
+			    updateDifficultyStatistics();
+        }
+		// 新增：更新难度分布统计
+		function updateDifficultyStatistics() {
+		    let easy = 0, medium = 0, hard = 0;
+		    
+		    // 遍历所有记录中的题目，按难度累加
+		    records.forEach(record => {
+		        platforms.forEach(platform => {
+		            const problems = record.problems[platform.id] || [];
+		            problems.forEach(problem => {
+		                switch(problem.difficulty) {
+		                    case '简单': easy++; break;
+		                    case '中等': medium++; break;
+		                    case '困难': hard++; break;
+		                }
+		            });
+		        });
+		    });
+		    
+		    // 更新页面显示
+		    document.getElementById('easyTotal').textContent = `简单题：${easy}`;
+		    document.getElementById('mediumTotal').textContent = `中等题：${medium}`;
+		    document.getElementById('hardTotal').textContent = `困难题：${hard}`;
+		}
+
+        // 渲染图表
+        function renderChart() {
+            const ctx = document.getElementById('acChart').getContext('2d');
+            const recentRecords = records.slice(-7).reverse();
+            
+            if (recentRecords.length === 0) {
+                if (acChart) acChart.destroy();
+                return;
+            }
+            
+            const dates = recentRecords.map(r => r.date);
+            const datasets = platforms.map(platform => ({
+                label: platform.name,
+                data: recentRecords.map(r => r.counts[platform.id] || 0),
+                backgroundColor: getComputedStyle(document.querySelector(`.${platform.colorClass}`)).borderLeftColor,
+                borderColor: getComputedStyle(document.querySelector(`.${platform.colorClass}`)).borderLeftColor,
+                borderWidth: 1
+            }));
+            
+            if (acChart) acChart.destroy();
+            acChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: dates, datasets },
+                options: { scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } } }
+            });
+        }
+
+        // 删除题目
+        function removeProblem(platformId, index) {
+            if (!currentProblems[platformId]) return;
+            currentProblems[platformId].splice(index, 1);
+            renderCurrentProblemList(platformId);
+            updatePlatformProblemList(platformId);
+            // 更新数量输入框
+            document.getElementById(`${platformId}Input`).value = currentProblems[platformId].length;
+        }
+
+        // 初始化日期选择器
+        function initDatePicker() {
+            const datePicker = document.getElementById('datePicker');
+            datePicker.valueAsDate = new Date();
+			
+        }
+		// 饼图弹窗相关变量
+		const chartModal = document.getElementById('chartModal');
+		const closeModalBtn = document.getElementById('closeModalBtn');
+		const showChartBtn = document.getElementById('showChartBtn');
+		let platformChart = null; // 饼图实例
+		
+		// 点击按钮显示弹窗
+		showChartBtn.addEventListener('click', function() {
+		  chartModal.style.display = 'flex'; // 显示弹窗
+		  renderPlatformPieChart(); // 生成饼图
+		});
+		
+		// 点击关闭按钮隐藏弹窗
+		closeModalBtn.addEventListener('click', function() {
+		  chartModal.style.display = 'none'; // 隐藏弹窗
+		  if (platformChart) {
+		    platformChart.destroy(); // 销毁饼图实例（避免重复绘制）
+		  }
+		});
+		
+		// 点击弹窗外部背景也可关闭
+		chartModal.addEventListener('click', function(e) {
+		  if (e.target === chartModal) { // 点击的是背景区域
+		    chartModal.style.display = 'none';
+		    if (platformChart) platformChart.destroy();
+		  }
+		});
+		
+		// 生成平台题目数量饼图（核心逻辑）
+		function renderPlatformPieChart() {
+		  // 1. 计算各平台总题目数
+		  const platformCounts = {};
+		  platforms.forEach(platform => {
+		    platformCounts[platform.id] = 0;
+		  });
+		
+		  records.forEach(record => {
+		    platforms.forEach(platform => {
+		      platformCounts[platform.id] += (record.counts[platform.id] || 0);
+		    });
+		  });
+		
+		  // 2. 准备饼图数据（过滤0题平台）
+		  const labels = [];
+		  const data = [];
+		  const colors = [
+		    '#40a9ff', '#ff7a45', '#73d13d', '#9254de', 
+		    '#ff4d4f', '#597ef7', '#ffc53d' // 平台对应颜色
+		  ];
+		
+		  platforms.forEach((platform, index) => {
+		    const count = platformCounts[platform.id];
+		    if (count > 0) {
+		      labels.push(platform.name);
+		      data.push(count);
+		    }
+		  });
+		
+		  // 3. 绘制饼图
+		  const ctx = document.getElementById('platformChart').getContext('2d');
+		  if (platformChart) platformChart.destroy(); // 销毁旧实例
+		
+		  platformChart = new Chart(ctx, {
+		    type: 'pie',
+		    data: { labels, datasets: [{ data, backgroundColor: colors.slice(0, labels.length), borderWidth: 1 }] },
+		    options: {
+		      responsive: true,
+		      plugins: {
+		        tooltip: {
+		          callbacks: {
+		            label: function(ctx) {
+		              const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+		              const percentage = Math.round((ctx.raw / total) * 100);
+		              return `${ctx.label}: ${ctx.raw}题 (${percentage}%)`;
+		            }
+		          }
+		        }
+		      }
+		    }
+		  });
+		}
     </script>
 </body>
 </html>
