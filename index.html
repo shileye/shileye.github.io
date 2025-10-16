@@ -1,31 +1,29 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>乐哥OJ AC题目记录系统</title>
+    <title>乐哥OJ AC题目记录系统 (含初始战绩)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-		/* 在 <style> 标签中添加 */
-		.history-table {
-		    width: 100%;
-		    border-collapse: collapse;
-		    margin: 1rem 0;
-		}
-		.history-table th, .history-table td {
-		    border: 1px solid #ddd; /* 淡灰色边框 */
-		    padding: 0.5rem 0.8rem;
-		    text-align: center;
-		}
-		.history-table th {
-		    background-color: #f5f5f5; /* 表头灰色背景 */
-		    font-weight: bold;
-		}
-		.history-table tr:hover {
-		    background-color: #f9f9f9; /* 行 hover 高亮 */
-		}
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        .history-table th, .history-table td {
+            border: 1px solid #ddd;
+            padding: 0.5rem 0.8rem;
+            text-align: center;
+        }
+        .history-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+        .history-table tr:hover {
+            background-color: #f9f9f9;
+        }
         body {
             background-color: #f8f9fa;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -67,6 +65,7 @@
         .atcoder-card { border-left-color: #ff4d4f; }
         .codeforces-card { border-left-color: #597ef7; }
         .leetcode-card { border-left-color: #ffc53d; }
+        .lanqiao-card { border-left-color: #1890ff; } /* 新增蓝桥杯颜色 */
         .problem-item {
             padding: 5px 0;
             border-bottom: 1px dashed #eee;
@@ -88,25 +87,22 @@
             <div class="col-md-6">
                 <button id="todayBtn" class="btn btn-primary">今天</button>
                 <button id="saveBtn" class="btn btn-success">保存记录</button>
-				<button id="showChartBtn" class="btn btn-info">📊 生成饼图哟~</button> <!-- 新增的弹窗按钮，放在保存按钮右侧 -->
+				<button id="showChartBtn" class="btn btn-info">📊 生成饼图哟~</button>
             </div>
         </div>
         
-        <!-- 平台输入区域（新增题目记录功能） -->
-        <div id="platformsContainer" class="row">
-            <!-- JS动态生成带题目记录功能的平台卡片 -->
-        </div>
-        <!-- 饼图弹窗（默认隐藏） -->
+        <!-- 平台输入区域 -->
+        <div id="platformsContainer" class="row"></div>
+
+        <!-- 饼图弹窗 -->
         <div id="chartModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center;">
           <div style="background: white; width: 80%; max-width: 600px; border-radius: 8px; padding: 20px; position: relative;">
-            <!-- 关闭按钮 -->
             <button id="closeModalBtn" style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 20px; cursor: pointer;">×</button>
-            <!-- 饼图标题 -->
             <h3 style="text-align: center; margin-bottom: 20px;">各平台题目数量分布</h3>
-            <!-- 饼图画布 -->
             <canvas id="platformChart" width="400" height="400"></canvas>
           </div>
         </div>
+
         <!-- 统计信息 -->
         <div class="row mt-4">
             <div class="col-md-4">
@@ -134,12 +130,13 @@
                 </div>
             </div>
         </div>
-        <!-- 新增难度分布统计行 -->
+
+        <!-- 难度分布统计 -->
         <div class="row mt-4">
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">难度分布统计</h5>
+                        <h5 class="card-title">难度分布统计 (基于新增题目)</h5>
                         <div class="display-6">
                             <span id="easyTotal">简单题：0</span> | 
                             <span id="mediumTotal">中等题：0</span> | 
@@ -149,49 +146,38 @@
                 </div>
             </div>
         </div>
-        <!-- 图表区域 -->
+
+        <!-- AC趋势图 -->
         <div class="row mt-4">
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">最近7天AC趋势</h5>
+                        <h5 class="card-title">最近7天AC趋势 (每日新增)</h5>
                         <canvas id="acChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- 历史记录表格（新增题目详情列） -->
+        <!-- 历史记录 -->
         <div class="row mt-4">
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">历史记录</h5>
-						<!-- 分页按钮 -->
-						        <nav>
-						          <ul id="historyPagination" class="pagination pagination-sm"></ul>
-						        </nav>
+                        <h5 class="card-title">历史记录 (每日新增)</h5>
+						<nav><ul id="historyPagination" class="pagination pagination-sm"></ul></nav>
                         <div class="table-responsive">
-                            <table class="table table-striped history-table"> <!-- 合并class：table-striped（原有条纹）+ history-table（新增样式） -->
+                            <table class="table table-striped history-table">
                                 <thead>
                                     <tr>
                                         <th>日期</th>
-                                        <th>牛客</th>
-                                        <th>HDUOJ</th>
-                                        <th>VJ</th>
-                                        <th>洛谷</th>
-                                        <th>AtCoder</th>
-                                        <th>Codeforces</th>
-                                        <th>力扣</th>
-                                        <th>总计</th>
-                                        <th>题目详情</th> <!-- 新增列 -->
+                                        <th>牛客</th><th>HDU</th><th>VJ</th><th>洛谷</th>
+                                        <th>AtCoder</th><th>CF</th><th>力扣</th><th>蓝桥杯</th>
+                                        <th>总计</th><th>题目详情</th>
                                     </tr>
                                 </thead>
-                                <tbody id="historyTable">
-                                    <!-- 动态生成历史记录 -->
-                                </tbody>
-								</table>
-                            
+                                <tbody id="historyTable"></tbody>
+							</table>
                         </div>
                     </div>
                 </div>
@@ -199,63 +185,15 @@
         </div>
     </div>
 
-    <!-- 题目添加弹窗（新增） -->
-    <div class="modal fade" id="problemModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">添加题目</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="currentPlatform"> <!-- 存储当前平台ID -->
-                    <div class="mb-3">
-                        <label class="form-label">题目编号</label>
-                        <input type="text" class="form-control" id="problemId" placeholder="如：P1234">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">题目名称</label>
-                        <input type="text" class="form-control" id="problemName" placeholder="输入题目名称">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">难度</label>
-                        <select class="form-select" id="problemDifficulty">
-                            <option value="简单">简单</option>
-                            <option value="中等">中等</option>
-                            <option value="困难">困难</option>
-                        </select>
-                    </div>
-                    <div id="problemList" class="mt-3">
-                        <h6>已添加题目：</h6>
-                        <div id="currentProblemList"></div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" onclick="addProblem()">添加</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 题目详情弹窗（新增） -->
-    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="detailTitle">题目详情</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="detailContent">
-                    <!-- 动态加载题目详情 -->
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Modals (弹窗) -->
+    <div class="modal fade" id="problemModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="modalTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="currentPlatform"><div class="mb-3"><label class="form-label">题目编号</label><input type="text" class="form-control" id="problemId" placeholder="如：P1234"></div><div class="mb-3"><label class="form-label">题目名称</label><input type="text" class="form-control" id="problemName" placeholder="输入题目名称"></div><div class="mb-3"><label class="form-label">难度</label><select class="form-select" id="problemDifficulty"><option>简单</option><option>中等</option><option>困难</option></select></div><h6>已添加题目：</h6><div id="currentProblemList"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button type="button" class="btn btn-primary" onclick="addProblem()">添加</button></div></div></div></div>
+    <div class="modal fade" id="detailModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="detailTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="detailContent"></div></div></div></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // 平台数据
+        // --- 1. 数据定义区 ---
+
+        // 平台数据 (新增蓝桥杯)
         const platforms = [
             { id: 'nowcoder', name: '牛客', colorClass: 'nowcoder-card' },
             { id: 'hduoj', name: 'HDUOJ', colorClass: 'hduoj-card' },
@@ -263,202 +201,197 @@
             { id: 'luogu', name: '洛谷', colorClass: 'luogu-card' },
             { id: 'atcoder', name: 'AtCoder', colorClass: 'atcoder-card' },
             { id: 'codeforces', name: 'Codeforces', colorClass: 'codeforces-card' },
-            { id: 'leetcode', name: '力扣', colorClass: 'leetcode-card' }
+            { id: 'leetcode', name: '力扣', colorClass: 'leetcode-card' },
+            { id: 'lanqiao', name: '蓝桥杯', colorClass: 'lanqiao-card' }
         ];
 
-        // 初始化数据（新增problems字段存储题目详情）
-        let records = JSON.parse(localStorage.getItem('acRecords')) || [];
-        let currentProblems = {}; // 当前编辑的题目列表
+        // 【核心修改】：定义你的初始战绩！
+        const initialBaseData = {
+            nowcoder: 99,
+            codeforces: 104,
+            atcoder: 3,
+            leetcode: 25,
+            luogu: 30,
+            vj: 28,
+            lanqiao: 5,
+            hduoj: 10
+        };
+
+        // --- 2. 全局变量和初始化 ---
+
+        let records = JSON.parse(localStorage.getItem('acRecords_v2')) || [];
+        let currentProblems = {};
         let acChart = null;
+        let platformChart = null;
         const problemModal = new bootstrap.Modal(document.getElementById('problemModal'));
         const detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
 
-        // 页面加载完成后执行
+        // --- 3. 核心功能函数 ---
+
         window.onload = function() {
-            renderPlatformInputs(); // 生成带题目功能的平台卡片
+            renderPlatformInputs();
             initDatePicker();
-            renderHistoryTable();
-            updateStatistics();
-            renderChart();
+            updateAllUI();
             
-            // 绑定事件
             document.getElementById('todayBtn').onclick = setToday;
             document.getElementById('saveBtn').onclick = saveRecord;
             document.getElementById('datePicker').onchange = loadRecordForDate;
+
+            // 饼图弹窗事件
+            const chartModalEl = document.getElementById('chartModal');
+            document.getElementById('showChartBtn').addEventListener('click', () => {
+                chartModalEl.style.display = 'flex';
+                renderPlatformPieChart();
+            });
+            document.getElementById('closeModalBtn').addEventListener('click', () => {
+                chartModalEl.style.display = 'none';
+                if (platformChart) platformChart.destroy();
+            });
+            chartModalEl.addEventListener('click', e => {
+                if (e.target === chartModalEl) {
+                    chartModalEl.style.display = 'none';
+                    if (platformChart) platformChart.destroy();
+                }
+            });
         };
 
-        // 渲染平台输入区域（新增题目按钮和列表）
+        function updateAllUI() {
+            renderHistoryTable();
+            updateStatistics();
+            renderChart();
+        }
+
+        // 渲染平台输入区域
         function renderPlatformInputs() {
             const container = document.getElementById('platformsContainer');
-            container.innerHTML = '';
-            
-            platforms.forEach(platform => {
-                const col = document.createElement('div');
-                col.className = 'col-md-3 mb-3';
-                
-                const card = document.createElement('div');
-                card.className = `card platform-card ${platform.colorClass}`;
-                
-                // 平台卡片HTML（新增"添加题目"按钮和题目列表）
-                card.innerHTML = `
-                    <div class="card-body">
-                        <h5 class="card-title">${platform.name}</h5>
-                        <input type="number" min="0" id="${platform.id}Input" 
-                               class="form-control platform-input mb-2" value="0" placeholder="AC数量">
-                        <button class="btn btn-sm btn-outline-primary" onclick="openProblemModal('${platform.id}')">
-                            添加题目
-                        </button>
-                        <div id="${platform.id}ProblemList" class="mt-2 problem-list">
-                            <!-- 动态显示已添加题目 -->
+            container.innerHTML = platforms.map(p => `
+                <div class="col-md-3 mb-3">
+                    <div class="card platform-card ${p.colorClass}">
+                        <div class="card-body">
+                            <h5 class="card-title">${p.name}</h5>
+                            <input type="number" min="0" id="${p.id}Input" class="form-control platform-input mb-2" value="0" placeholder="今日新增">
+                            <button class="btn btn-sm btn-outline-primary" onclick="openProblemModal('${p.id}')">添加题目</button>
+                            <div id="${p.id}ProblemList" class="mt-2 problem-list"></div>
                         </div>
                     </div>
-                `;
-                
-                col.appendChild(card);
-                container.appendChild(col);
-            });
+                </div>`).join('');
         }
+        
+        // 【核心修改】：更新统计信息
+        function updateStatistics() {
+            const today = new Date().toISOString().split('T')[0];
+            const currentMonth = today.substring(0, 7);
+            const currentYear = today.substring(0, 4);
+            
+            let dailyTotal = 0, monthlyTotal = 0, yearlyTotal = 0;
+            
+            // 先从你的初始数据开始累加
+            monthlyTotal = Object.values(initialBaseData).reduce((sum, count) => sum + count, 0);
+            yearlyTotal = monthlyTotal; // 假设初始数据都在今年
 
-        // 打开题目添加弹窗
-        function openProblemModal(platformId) {
-            document.getElementById('currentPlatform').value = platformId;
-            document.getElementById('problemId').value = '';
-            document.getElementById('problemName').value = '';
-            document.getElementById('problemDifficulty').value = '简单';
-            
-            // 显示当前平台已添加的题目
-            renderCurrentProblemList(platformId);
-            
-            // 设置弹窗标题
-            const platform = platforms.find(p => p.id === platformId);
-            document.getElementById('modalTitle').textContent = `添加${platform.name}题目`;
-            
-            problemModal.show();
-        }
-
-        // 渲染当前平台已添加的题目列表
-        function renderCurrentProblemList(platformId) {
-            const container = document.getElementById('currentProblemList');
-            container.innerHTML = '';
-            
-            const problems = currentProblems[platformId] || [];
-            if (problems.length === 0) {
-                container.innerHTML = '<small class="text-muted">暂无题目</small>';
-                return;
-            }
-            
-            problems.forEach((problem, index) => {
-                const item = document.createElement('div');
-                item.className = 'problem-item d-flex justify-content-between align-items-center';
-                item.innerHTML = `
-                    <span>
-                        ${problem.id}：${problem.name}
-                        <span class="badge bg-secondary badge-difficulty">${problem.difficulty}</span>
-                    </span>
-                    <button class="btn btn-sm btn-danger" onclick="removeProblem('${platformId}', ${index})">
-                        ×
-                    </button>
-                `;
-                container.appendChild(item);
-            });
-        }
-
-        // 添加题目
-        function addProblem() {
-            const platformId = document.getElementById('currentPlatform').value;
-            const problemId = document.getElementById('problemId').value.trim();
-            const problemName = document.getElementById('problemName').value.trim();
-            const difficulty = document.getElementById('problemDifficulty').value;
-            
-            if (!problemId || !problemName) {
-                alert('请输入题目编号和名称');
-                return;
-            }
-            
-            // 初始化当前平台题目列表
-            if (!currentProblems[platformId]) {
-                currentProblems[platformId] = [];
-            }
-            
-            // 添加新题目
-            currentProblems[platformId].push({ id: problemId, name: problemName, difficulty });
-            
-            // 更新弹窗和平台卡片中的题目列表
-            renderCurrentProblemList(platformId);
-            updatePlatformProblemList(platformId);
-            
-            // 更新AC数量（题目数即为AC数量）
-            document.getElementById(`${platformId}Input`).value = currentProblems[platformId].length;
-        }
-
-        // 删除题目
-        function removeProblem(platformId, index) {
-            if (!currentProblems[platformId]) return;
-            
-            // 删除题目
-            currentProblems[platformId].splice(index, 1);
-            
-            // 更新弹窗和平台卡片中的题目列表
-            renderCurrentProblemList(platformId);
-            updatePlatformProblemList(platformId);
-            
-            // 更新AC数量
-            document.getElementById(`${platformId}Input`).value = currentProblems[platformId].length;
-        }
-
-        // 更新平台卡片中的题目列表显示
-        function updatePlatformProblemList(platformId) {
-            const container = document.getElementById(`${platformId}ProblemList`);
-            container.innerHTML = '';
-            
-            const problems = currentProblems[platformId] || [];
-            if (problems.length === 0) {
-                container.innerHTML = '<small class="text-muted">未添加题目</small>';
-                return;
-            }
-            
-            // 只显示前3个题目，多余的显示数量
-            const displayProblems = problems.slice(0, 3);
-            displayProblems.forEach(problem => {
-                const item = document.createElement('div');
-                item.className = 'text-sm';
-                item.innerHTML = `${problem.id} <span class="badge bg-secondary badge-difficulty">${problem.difficulty}</span>`;
-                container.appendChild(item);
+            // 再累加 localStorage 里的每日新增记录
+            records.forEach(record => {
+                const recordTotal = Object.values(record.counts || {}).reduce((sum, count) => sum + count, 0);
+                if (record.date === today) dailyTotal = recordTotal;
+                if (record.date.startsWith(currentMonth)) monthlyTotal += recordTotal;
+                if (record.date.startsWith(currentYear)) yearlyTotal += recordTotal;
             });
             
-            if (problems.length > 3) {
-                const more = document.createElement('div');
-                more.className = 'text-sm text-muted';
-                more.textContent = `...还有${problems.length - 3}题`;
-                container.appendChild(more);
-            }
+            document.getElementById('dailyTotal').textContent = dailyTotal;
+            document.getElementById('monthlyTotal').textContent = monthlyTotal;
+            document.getElementById('yearlyTotal').textContent = yearlyTotal;
+            updateDifficultyStatistics();
         }
 
-        // 保存记录（包含题目详情）
+		function updateDifficultyStatistics() {
+		    let easy = 0, medium = 0, hard = 0;
+		    records.forEach(record => {
+		        Object.values(record.problems || {}).flat().forEach(problem => {
+                    switch(problem.difficulty) {
+                        case '简单': easy++; break;
+                        case '中等': medium++; break;
+                        case '困难': hard++; break;
+                    }
+                });
+		    });
+		    document.getElementById('easyTotal').textContent = `简单题：${easy}`;
+		    document.getElementById('mediumTotal').textContent = `中等题：${medium}`;
+		    document.getElementById('hardTotal').textContent = `困难题：${hard}`;
+		}
+
+        // 【核心修改】：渲染饼图
+		function renderPlatformPieChart() {
+            if (platformChart) platformChart.destroy();
+            
+            // 1. 直接从你的初始数据开始
+            const platformCounts = { ...initialBaseData };
+
+            // 2. 累加 localStorage 里的每日新增
+            records.forEach(record => {
+                for (const platformId in record.counts) {
+                    platformCounts[platformId] = (platformCounts[platformId] || 0) + record.counts[platformId];
+                }
+            });
+
+            const labels = [];
+            const data = [];
+            const colors = [];
+
+            platforms.forEach(p => {
+                const count = platformCounts[p.id] || 0;
+                if (count > 0) {
+                    labels.push(p.name);
+                    data.push(count);
+                    // 从 CSS 变量中获取颜色
+                    colors.push(getComputedStyle(document.querySelector(`.${p.colorClass}`)).borderLeftColor);
+                }
+            });
+
+            const ctx = document.getElementById('platformChart').getContext('2d');
+            platformChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels,
+                    datasets: [{
+                        data,
+                        backgroundColor: colors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? Math.round((ctx.raw / total) * 100) : 0;
+                                    return `${ctx.label}: ${ctx.raw}题 (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+		}
+        
+        // --- 4. 其他函数 (基本无需修改) ---
+
         function saveRecord() {
-			// 保存前显示提示
-			    const saveBtn = document.getElementById('saveBtn');
-			    saveBtn.disabled = true; // 禁用按钮防止重复点击
-			    saveBtn.textContent = '保存中...'; // 文字提示
+			const saveBtn = document.getElementById('saveBtn');
+			saveBtn.disabled = true;
+			saveBtn.textContent = '保存中...';
             const date = document.getElementById('datePicker').value;
-            if (!date) {
-                alert('请选择日期');
-                return;
-            }
+            if (!date) { alert('请选择日期'); return; }
             
-            const record = { date, counts: {}, problems: {} };
+            const record = { date, counts: {}, problems: { ...currentProblems } };
             let total = 0;
-            
-            // 收集各平台数据
-            platforms.forEach(platform => {
-                const input = document.getElementById(`${platform.id}Input`);
-                const count = parseInt(input.value) || 0;
-                record.counts[platform.id] = count;
-                record.problems[platform.id] = currentProblems[platform.id] || []; // 保存题目详情
+            platforms.forEach(p => {
+                const count = parseInt(document.getElementById(`${p.id}Input`).value) || 0;
+                record.counts[p.id] = count;
                 total += count;
             });
             
-            // 更新或添加记录
             const existingIndex = records.findIndex(r => r.date === date);
             if (existingIndex >= 0) {
                 records[existingIndex] = record;
@@ -466,51 +399,32 @@
                 records.push(record);
             }
             
-            // 按日期排序并保存
             records.sort((a, b) => new Date(a.date) - new Date(b.date));
-            localStorage.setItem('acRecords', JSON.stringify(records));
+            localStorage.setItem('acRecords_v2', JSON.stringify(records));
             
-            // 更新UI
-            renderHistoryTable();
-            updateStatistics();
-            renderChart();
+            updateAllUI();
             
-            
-			// 保存完成后恢复按钮
-			    saveBtn.disabled = false;
-			    saveBtn.textContent = '保存记录';
-			    alert(`保存成功！共 ${total} 题`);
+			saveBtn.disabled = false;
+			saveBtn.textContent = '保存记录';
+			alert(`保存成功！新增 ${total} 题`);
         }
 
-        // 加载指定日期的记录（包含题目详情）
         function loadRecordForDate() {
             const date = document.getElementById('datePicker').value;
             const record = records.find(r => r.date === date);
+            currentProblems = record ? JSON.parse(JSON.stringify(record.problems || {})) : {};
             
-            // 重置当前题目列表
-            currentProblems = {};
-            
-            platforms.forEach(platform => {
-                // 加载数量
-                const input = document.getElementById(`${platform.id}Input`);
-                input.value = record ? record.counts[platform.id] || 0 : 0;
-                
-                // 加载题目详情
-                currentProblems[platform.id] = record ? record.problems[platform.id] || [] : [];
-                
-                // 更新平台卡片中的题目列表显示
-                updatePlatformProblemList(platform.id);
+            platforms.forEach(p => {
+                document.getElementById(`${p.id}Input`).value = record?.counts?.[p.id] || 0;
+                updatePlatformProblemList(p.id);
             });
         }
-
-        // 渲染历史记录表格（新增题目详情列）
-        let currentPage = 1;
-        const recordsPerPage = 7; // 每页 7 天
         
+        let currentPage = 1;
+        const recordsPerPage = 7;
         function renderHistoryTable() {
           const tableBody = document.getElementById('historyTable');
           tableBody.innerHTML = '';
-        
           const startIndex = (currentPage - 1) * recordsPerPage;
           const pageRecords = records.slice().reverse().slice(startIndex, startIndex + recordsPerPage);
         
@@ -518,29 +432,21 @@
             const row = document.createElement('tr');
             let total = 0;
             row.innerHTML = `<td>${record.date}</td>`;
-        
-            platforms.forEach(platform => {
-              const count = record.counts[platform.id] || 0;
+            platforms.forEach(p => {
+              const count = record.counts?.[p.id] || 0;
               total += count;
               row.innerHTML += `<td>${count}</td>`;
             });
-        
             row.innerHTML += `<td><strong>${total}</strong></td>`;
-            row.innerHTML += `
-              <td>
-                <button class="btn btn-sm btn-info" onclick="showProblemDetail('${record.date}')">查看</button>
-              </td>
-            `;
+            row.innerHTML += `<td><button class="btn btn-sm btn-info" onclick="showProblemDetail('${record.date}')">查看</button></td>`;
             tableBody.appendChild(row);
           });
-        
           renderPagination();
         }
         
         function renderPagination() {
           const pagination = document.getElementById('historyPagination');
           pagination.innerHTML = '';
-        
           const totalPages = Math.ceil(records.length / recordsPerPage);
           for (let i = 1; i <= totalPages; i++) {
             const li = document.createElement('li');
@@ -555,221 +461,116 @@
           }
         }
 
-
-        // 显示题目详情
         function showProblemDetail(date) {
             const record = records.find(r => r.date === date);
             if (!record) return;
-            
             const container = document.getElementById('detailContent');
             container.innerHTML = `<h5>${date} 题目详情</h5><hr>`;
-            
-            platforms.forEach(platform => {
-                const problems = record.problems[platform.id] || [];
+            let hasProblems = false;
+            platforms.forEach(p => {
+                const problems = record.problems?.[p.id] || [];
                 if (problems.length === 0) return;
-                
-                const platformName = platforms.find(p => p.id === platform.id).name;
-                const section = document.createElement('div');
-                section.className = 'mb-4';
-                section.innerHTML = `<h6>${platformName}（共${problems.length}题）</h6>`;
-                
+                hasProblems = true;
+                container.innerHTML += `<h6>${p.name}（共${problems.length}题）</h6>`;
                 const list = document.createElement('ul');
-                problems.forEach(problem => {
-                    list.innerHTML += `
-                        <li class="d-flex justify-content-between">
-                            <div>
-                                <strong>${problem.id}</strong>：${problem.name}
-                            </div>
-                            <span class="badge bg-secondary">${problem.difficulty}</span>
-                        </li>
-                    `;
+                problems.forEach(prob => {
+                    list.innerHTML += `<li class="d-flex justify-content-between"><div><strong>${prob.id}</strong>：${prob.name}</div><span class="badge bg-secondary">${prob.difficulty}</span></li>`;
                 });
-                
-                section.appendChild(list);
-                container.appendChild(section);
+                container.appendChild(list);
             });
-            
+            if (!hasProblems) container.innerHTML += '<p>当天没有记录详细的题目信息。</p>';
             document.getElementById('detailTitle').textContent = `${date} 题目详情`;
             detailModal.show();
         }
 
-        
-
-        // 设置为今天
-        function setToday() {
-            document.getElementById('datePicker').valueAsDate = new Date();
-            loadRecordForDate();
-        }
-
-        // 更新统计信息
-        function updateStatistics() {
-            const today = new Date().toISOString().split('T')[0];
-            const currentMonth = new Date().toISOString().substring(0, 7);
-            const currentYear = new Date().getFullYear().toString();
-            
-            let dailyTotal = 0, monthlyTotal = 0, yearlyTotal = 0;
-            
-            records.forEach(record => {
-                const recordTotal = platforms.reduce((sum, p) => sum + (record.counts[p.id] || 0), 0);
-                if (record.date === today) dailyTotal = recordTotal;
-                if (record.date.startsWith(currentMonth)) monthlyTotal += recordTotal;
-                if (record.date.startsWith(currentYear)) yearlyTotal += recordTotal;
-            });
-            
-            document.getElementById('dailyTotal').textContent = dailyTotal;
-            document.getElementById('monthlyTotal').textContent = monthlyTotal;
-            document.getElementById('yearlyTotal').textContent = yearlyTotal;
-			// 新增：更新难度统计
-			    updateDifficultyStatistics();
-        }
-		// 新增：更新难度分布统计
-		function updateDifficultyStatistics() {
-		    let easy = 0, medium = 0, hard = 0;
-		    
-		    // 遍历所有记录中的题目，按难度累加
-		    records.forEach(record => {
-		        platforms.forEach(platform => {
-		            const problems = record.problems[platform.id] || [];
-		            problems.forEach(problem => {
-		                switch(problem.difficulty) {
-		                    case '简单': easy++; break;
-		                    case '中等': medium++; break;
-		                    case '困难': hard++; break;
-		                }
-		            });
-		        });
-		    });
-		    
-		    // 更新页面显示
-		    document.getElementById('easyTotal').textContent = `简单题：${easy}`;
-		    document.getElementById('mediumTotal').textContent = `中等题：${medium}`;
-		    document.getElementById('hardTotal').textContent = `困难题：${hard}`;
-		}
-
-        // 渲染图表
         function renderChart() {
+            if (acChart) acChart.destroy();
             const ctx = document.getElementById('acChart').getContext('2d');
-            const recentRecords = records.slice(-7).reverse();
+            const recentRecords = records.slice(-7);
             
-            if (recentRecords.length === 0) {
-                if (acChart) acChart.destroy();
-                return;
-            }
-            
-            const dates = recentRecords.map(r => r.date);
-            const datasets = platforms.map(platform => ({
-                label: platform.name,
-                data: recentRecords.map(r => r.counts[platform.id] || 0),
-                backgroundColor: getComputedStyle(document.querySelector(`.${platform.colorClass}`)).borderLeftColor,
-                borderColor: getComputedStyle(document.querySelector(`.${platform.colorClass}`)).borderLeftColor,
-                borderWidth: 1
+            const dates = recentRecords.map(r => r.date.substring(5));
+            const datasets = platforms.map(p => ({
+                label: p.name,
+                data: recentRecords.map(r => r.counts?.[p.id] || 0),
+                backgroundColor: getComputedStyle(document.querySelector(`.${p.colorClass}`)).borderLeftColor,
             }));
             
-            if (acChart) acChart.destroy();
             acChart = new Chart(ctx, {
                 type: 'bar',
                 data: { labels: dates, datasets },
                 options: { scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } } }
             });
         }
+        
+        function setToday() {
+            document.getElementById('datePicker').valueAsDate = new Date();
+            loadRecordForDate();
+        }
 
-        // 删除题目
-        function removeProblem(platformId, index) {
-            if (!currentProblems[platformId]) return;
-            currentProblems[platformId].splice(index, 1);
+        function initDatePicker() {
+            document.getElementById('datePicker').valueAsDate = new Date();
+        }
+
+        function openProblemModal(platformId) {
+            document.getElementById('currentPlatform').value = platformId;
+            document.getElementById('problemId').value = '';
+            document.getElementById('problemName').value = '';
+            document.getElementById('problemDifficulty').value = '简单';
+            renderCurrentProblemList(platformId);
+            const platform = platforms.find(p => p.id === platformId);
+            document.getElementById('modalTitle').textContent = `添加${platform.name}题目`;
+            problemModal.show();
+        }
+
+        function renderCurrentProblemList(platformId) {
+            const container = document.getElementById('currentProblemList');
+            const problems = currentProblems[platformId] || [];
+            if (problems.length === 0) {
+                container.innerHTML = '<small class="text-muted">暂无题目</small>';
+                return;
+            }
+            container.innerHTML = problems.map((p, index) => `
+                <div class="problem-item d-flex justify-content-between align-items-center">
+                    <span>${p.id}：${p.name}<span class="badge bg-secondary badge-difficulty">${p.difficulty}</span></span>
+                    <button class="btn btn-sm btn-danger" onclick="removeProblem('${platformId}', ${index})">×</button>
+                </div>`).join('');
+        }
+
+        function addProblem() {
+            const platformId = document.getElementById('currentPlatform').value;
+            const problemId = document.getElementById('problemId').value.trim();
+            const problemName = document.getElementById('problemName').value.trim();
+            const difficulty = document.getElementById('problemDifficulty').value;
+            if (!problemId || !problemName) { alert('请输入题目编号和名称'); return; }
+            if (!currentProblems[platformId]) currentProblems[platformId] = [];
+            currentProblems[platformId].push({ id: problemId, name: problemName, difficulty });
             renderCurrentProblemList(platformId);
             updatePlatformProblemList(platformId);
-            // 更新数量输入框
             document.getElementById(`${platformId}Input`).value = currentProblems[platformId].length;
         }
 
-        // 初始化日期选择器
-        function initDatePicker() {
-            const datePicker = document.getElementById('datePicker');
-            datePicker.valueAsDate = new Date();
-			
+        function removeProblem(platformId, index) {
+            currentProblems[platformId]?.splice(index, 1);
+            renderCurrentProblemList(platformId);
+            updatePlatformProblemList(platformId);
+            document.getElementById(`${platformId}Input`).value = currentProblems[platformId]?.length || 0;
         }
-		// 饼图弹窗相关变量
-		const chartModal = document.getElementById('chartModal');
-		const closeModalBtn = document.getElementById('closeModalBtn');
-		const showChartBtn = document.getElementById('showChartBtn');
-		let platformChart = null; // 饼图实例
-		
-		// 点击按钮显示弹窗
-		showChartBtn.addEventListener('click', function() {
-		  chartModal.style.display = 'flex'; // 显示弹窗
-		  renderPlatformPieChart(); // 生成饼图
-		});
-		
-		// 点击关闭按钮隐藏弹窗
-		closeModalBtn.addEventListener('click', function() {
-		  chartModal.style.display = 'none'; // 隐藏弹窗
-		  if (platformChart) {
-		    platformChart.destroy(); // 销毁饼图实例（避免重复绘制）
-		  }
-		});
-		
-		// 点击弹窗外部背景也可关闭
-		chartModal.addEventListener('click', function(e) {
-		  if (e.target === chartModal) { // 点击的是背景区域
-		    chartModal.style.display = 'none';
-		    if (platformChart) platformChart.destroy();
-		  }
-		});
-		
-		// 生成平台题目数量饼图（核心逻辑）
-		function renderPlatformPieChart() {
-		  // 1. 计算各平台总题目数
-		  const platformCounts = {};
-		  platforms.forEach(platform => {
-		    platformCounts[platform.id] = 0;
-		  });
-		
-		  records.forEach(record => {
-		    platforms.forEach(platform => {
-		      platformCounts[platform.id] += (record.counts[platform.id] || 0);
-		    });
-		  });
-		
-		  // 2. 准备饼图数据（过滤0题平台）
-		  const labels = [];
-		  const data = [];
-		  const colors = [
-		    '#40a9ff', '#ff7a45', '#73d13d', '#9254de', 
-		    '#ff4d4f', '#597ef7', '#ffc53d' // 平台对应颜色
-		  ];
-		
-		  platforms.forEach((platform, index) => {
-		    const count = platformCounts[platform.id];
-		    if (count > 0) {
-		      labels.push(platform.name);
-		      data.push(count);
-		    }
-		  });
-		
-		  // 3. 绘制饼图
-		  const ctx = document.getElementById('platformChart').getContext('2d');
-		  if (platformChart) platformChart.destroy(); // 销毁旧实例
-		
-		  platformChart = new Chart(ctx, {
-		    type: 'pie',
-		    data: { labels, datasets: [{ data, backgroundColor: colors.slice(0, labels.length), borderWidth: 1 }] },
-		    options: {
-		      responsive: true,
-		      plugins: {
-		        tooltip: {
-		          callbacks: {
-		            label: function(ctx) {
-		              const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-		              const percentage = Math.round((ctx.raw / total) * 100);
-		              return `${ctx.label}: ${ctx.raw}题 (${percentage}%)`;
-		            }
-		          }
-		        }
-		      }
-		    }
-		  });
-		}
+
+        function updatePlatformProblemList(platformId) {
+            const container = document.getElementById(`${platformId}ProblemList`);
+            const problems = currentProblems[platformId] || [];
+            if (problems.length === 0) {
+                container.innerHTML = '<small class="text-muted">未添加题目</small>';
+                return;
+            }
+            const displayProblems = problems.slice(0, 3);
+            let html = displayProblems.map(p => `<div class="text-sm">${p.id} <span class="badge bg-secondary badge-difficulty">${p.difficulty}</span></div>`).join('');
+            if (problems.length > 3) {
+                html += `<div class="text-sm text-muted">...还有${problems.length - 3}题</div>`;
+            }
+            container.innerHTML = html;
+        }
+
     </script>
 </body>
 </html>
